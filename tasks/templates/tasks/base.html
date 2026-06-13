@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Task Planner{% endblock %}</title>
+  {% load static %}
+  <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+
+<nav class="navbar">
+  <a href="{% url 'dashboard' %}" class="nav-brand">&#10003; TaskPlanner</a>
+  {% if user.is_authenticated %}
+  <div class="nav-links">
+    <span class="nav-user">{{ user.username }}</span>
+    <a href="{% url 'create_task' %}" class="btn btn-primary btn-sm">+ New Task</a>
+    <form method="post" action="{% url 'logout' %}" style="display:inline">
+      {% csrf_token %}
+      <button type="submit" class="btn btn-ghost btn-sm">Logout</button>
+    </form>
+  </div>
+  {% endif %}
+</nav>
+
+{% if messages %}
+<div class="messages-wrap">
+  {% for message in messages %}
+  <div class="message message-{{ message.tags }}">{{ message }}</div>
+  {% endfor %}
+</div>
+{% endif %}
+
+<main class="container">
+  {% block content %}{% endblock %}
+</main>
+
+</body>
+</html>

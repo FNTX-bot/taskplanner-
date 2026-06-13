@@ -1,0 +1,93 @@
+{% extends 'tasks/base.html' %}
+{% block title %}Dashboard — Task Planner{% endblock %}
+
+{% block content %}
+
+{% if reminder_list %}
+<div class="reminder-banner">
+  <div class="reminder-banner-title">&#128276; Reminders</div>
+  <ul>
+    {% for task in reminder_list %}
+    <li>
+      {% if task.is_overdue %}
+        <span class="label label-overdue">Overdue</span>
+      {% else %}
+        <span class="label label-soon">Due soon</span>
+      {% endif %}
+      {{ task.title }}
+      <span class="reminder-time">— {{ task.due_datetime|date:"M j, Y H:i" }}</span>
+    </li>
+    {% endfor %}
+  </ul>
+</div>
+{% endif %}
+
+<div class="page-header">
+  <h1>My Tasks</h1>
+</div>
+
+<!-- Progress bar -->
+<div class="progress-section">
+  <span class="progress-label">{{ done_count }} / {{ total }} done</span>
+  <div class="progress-track">
+    <div class="progress-fill" style="width:{{ progress }}%"></div>
+  </div>
+  <span class="progress-pct">{{ progress }}%</span>
+</div>
+
+<!-- Filter tabs -->
+<div class="filter-bar">
+  <a href="?filter=all"     class="filter-btn {% if filter_type == 'all' %}active{% endif %}">All</a>
+  <a href="?filter=today"   class="filter-btn {% if filter_type == 'today' %}active{% endif %}">Today</a>
+  <a href="?filter=pending" class="filter-btn {% if filter_type == 'pending' %}active{% endif %}">Pending</a>
+  <a href="?filter=done"    class="filter-btn {% if filter_type == 'done' %}active{% endif %}">Done</a>
+</div>
+
+<!-- Task list -->
+{% if tasks %}
+<ul class="task-list">
+  {% for task in tasks %}
+  <li class="task-card priority-{{ task.priority }}{% if task.is_done %} task-done{% endif %}{% if task.is_overdue %} task-overdue{% endif %}">
+
+    <div class="task-left">
+      <!-- Toggle checkbox -->
+      <form method="post" action="{% url 'toggle_task' task.pk %}">
+        {% csrf_token %}
+        <button type="submit" class="checkbox{% if task.is_done %} checked{% endif %}" title="Mark {% if task.is_done %}undone{% else %}done{% endif %}"></button>
+      </form>
+
+      <div class="task-info">
+        <span class="task-title">{{ task.title }}</span>
+        <span class="task-meta">
+          {{ task.due_datetime|date:"M j, Y H:i" }}
+          &bull;
+          <span class="badge badge-{{ task.priority }}">{{ task.get_priority_display }}</span>
+          {% if task.repeat != 'none' %}
+          &bull; <span class="badge badge-repeat">&#8635; {{ task.get_repeat_display }}</span>
+          {% endif %}
+          {% if task.is_overdue %}
+          &bull; <span class="badge badge-overdue">Overdue</span>
+          {% endif %}
+        </span>
+      </div>
+    </div>
+
+    <div class="task-actions">
+      <a href="{% url 'edit_task' task.pk %}" class="btn btn-ghost btn-xs">Edit</a>
+      <form method="post" action="{% url 'delete_task' task.pk %}"
+            onsubmit="return confirm('Delete &quot;{{ task.title }}&quot;?')">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger btn-xs">Delete</button>
+      </form>
+    </div>
+
+  </li>
+  {% endfor %}
+</ul>
+{% else %}
+<div class="empty-state">
+  <p>No tasks here. <a href="{% url 'create_task' %}">Create one?</a></p>
+</div>
+{% endif %}
+
+{% endblock %}
